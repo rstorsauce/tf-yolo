@@ -1,4 +1,4 @@
-# tensorflow-yolo
+# tf-yolo
 
 ### Require
 	tensorflow-1.0
