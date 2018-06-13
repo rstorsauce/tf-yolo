@@ -38,8 +38,8 @@ def process_predicts(predicts):
 
     if flat[index] > 0.12:
 
-
-      print(flat[index])
+      conf = flat[index]
+      print(conf)
       index = np.unravel_index(index, P.shape)
 
       #print(P[a, b, c, d])
@@ -67,7 +67,7 @@ def process_predicts(predicts):
       xmax = xmin + w
       ymax = ymin + h
 
-      output.append((xmin, ymin, xmax, ymax, class_num))
+      output.append((xmin, ymin, xmax, ymax, class_num, str(conf)))
 
   return output
 
@@ -103,14 +103,20 @@ for i in os.scandir(evaldir):
     np_predict = sess.run(predicts, feed_dict={image: np_img})
 
     output = process_predicts(np_predict)
+    outstr = i.name + "\n"
     for out in output:
-      xmin, ymin, xmax, ymax, class_num = out
-      print(xmin, ymin, xmax, ymax, class_num)
+      xmin, ymin, xmax, ymax, class_num, conf = out
+      print(xmin, ymin, xmax, ymax, class_num, conf)
       class_name = classes_name[class_num]
       cv2.rectangle(resized_img, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (0, 0, 255))
-      cv2.putText(resized_img, class_name, (int(xmin), int(ymin)), 2, 1.5, (0, 0, 255))
+      cv2.putText(resized_img, class_name + " " + conf, (int(xmin), int(ymin)), 2, 1.5, (0, 0, 255))
+      outstr += "{}: xmin {}, ymin {}, xmax {}, ymax {}, confidence {}\n".format(classes_name[class_num], xmin, ymin, xmax, ymax, conf)
     outpath = str.split(i.path, ".")
-    outpath[0] += "_out"
+    outpath[-2] += "_out"
     outimg = ".".join(outpath)
     cv2.imwrite(outimg, resized_img)
+    outtxt = open(outimg.replace("jpg", "txt"), 'w')
+    outtxt.write(outstr)
+
+
 sess.close()
